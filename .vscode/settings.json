@@ -1,0 +1,27 @@
+{
+  "C_Cpp.intelliSenseEngine": "Tag Parser",
+  "idf.portWin": "COM1",
+  "idf.flashType": "UART",
+  "files.associations": {
+    "spi_master.h": "c",
+    "regex": "c",
+    "*.tcc": "c",
+    "bitset": "c",
+    "complex": "c",
+    "istream": "c",
+    "streambuf": "c",
+    "tuple": "c",
+    "*.ipp": "c",
+    "*.inc": "c",
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "queue.h": "c",
+    "string.h": "c",
+    "esp_log.h": "c"
+  },
+  "idf.adapterTargetName": "esp32",
+  "idf.openOcdConfigs": [
+    "board/esp32-wrover-kit-3.3v.cfg"
+  ]
+}
