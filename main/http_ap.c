@@ -22,6 +22,38 @@ static const char *TAG = "http_ap";
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[] asm("_binary_index_html_end");
 
+extern const char style_start[] asm("_binary_style_css_start");
+extern const char style_end[] asm("_binary_style_css_end");
+
+/* Style */
+static esp_err_t style_get_handler(httpd_req_t *req)
+{
+    char*  buf;
+    size_t buf_len;
+    const size_t style_len = style_end - style_start;
+
+    ESP_LOGI(TAG, "==Style CSS==");
+
+    /* Get header value string length and allocate memory for length + 1,
+     * extra byte for null termination */
+    buf_len = httpd_req_get_hdr_value_len(req, "Host") + 1;
+    if (buf_len > 1) {
+        buf = malloc(buf_len);
+        /* Copy null terminated value string into buffer */
+        if (httpd_req_get_hdr_value_str(req, "Host", buf, buf_len) == ESP_OK) {
+            ESP_LOGI(TAG, "Found header => Host: %s", buf);
+        }
+        free(buf);
+    }
+
+    /* Send response with custom headers and body set as the
+     * string passed in user context*/
+    //const char* resp_str = (const char*) req->user_ctx;
+    httpd_resp_send(req, style_start, style_len);
+
+    return ESP_OK;
+}
+
 /* An HTTP GET handler */
 static esp_err_t index_get_handler(httpd_req_t *req)
 {
@@ -88,6 +120,13 @@ static esp_err_t set_post_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static const httpd_uri_t style = {
+    .uri       = "/style.css",
+    .method    = HTTP_GET,
+    .handler   = style_get_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t hello = {
     .uri       = "/",
     .method    = HTTP_GET,
@@ -140,6 +179,7 @@ static httpd_handle_t start_webserver(void)
     if (httpd_start(&server, &config) == ESP_OK) {
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
+        httpd_register_uri_handler(server, &style);
         httpd_register_uri_handler(server, &hello);
         httpd_register_uri_handler(server, &hello_post);
         return server;
