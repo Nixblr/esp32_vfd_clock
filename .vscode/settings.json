@@ -1,6 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "Tag Parser",
-  "idf.portWin": "COM1",
+  "idf.portWin": "COM6",
   "idf.flashType": "UART",
   "files.associations": {
     "spi_master.h": "c",

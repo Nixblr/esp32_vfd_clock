@@ -31,24 +31,15 @@ static esp_err_t style_get_handler(httpd_req_t *req)
     char*  buf;
     size_t buf_len;
     const size_t style_len = style_end - style_start;
-
-    ESP_LOGI(TAG, "==Style CSS==");
-
-    /* Get header value string length and allocate memory for length + 1,
-     * extra byte for null termination */
     buf_len = httpd_req_get_hdr_value_len(req, "Host") + 1;
     if (buf_len > 1) {
         buf = malloc(buf_len);
-        /* Copy null terminated value string into buffer */
         if (httpd_req_get_hdr_value_str(req, "Host", buf, buf_len) == ESP_OK) {
             ESP_LOGI(TAG, "Found header => Host: %s", buf);
         }
         free(buf);
     }
-
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    //const char* resp_str = (const char*) req->user_ctx;
+    httpd_resp_set_type(req, "text/css");
     httpd_resp_send(req, style_start, style_len);
 
     return ESP_OK;

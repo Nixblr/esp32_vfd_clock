@@ -1,6 +1,23 @@
-body {
+html {
     background-color: grey;
+    text-align: center;
 }
 h2 {
+    font-family: sans-serif;
+    color: #333399;
     text-align: center;
+}
+
+label {
+  font-size: x-large;
+}
+
+input {
+  height: 1.5em;
+  border-radius: 8px;
+  font-size: xx-large;
+}
+
+input[type="text"] {
+  width: 9em;
 }
