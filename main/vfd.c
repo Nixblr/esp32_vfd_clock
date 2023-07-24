@@ -55,8 +55,6 @@
 #include "driver/spi_master.h"
 #include "driver/gptimer.h"
 #include "string.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
 #define PIN_NUM_MOSI 13
 #define PIN_NUM_CLK 14
