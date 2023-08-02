@@ -153,8 +153,7 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
     DisplayShowMessage((char *) ws_pkt.payload, DSE_NONE, 1);
 
-    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
-        strcmp((char *)ws_pkt.payload, "toggle") == 0)
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT)
     {
         free(buf);
         return trigger_async_send(req->handle, req);
@@ -170,9 +169,7 @@ static void ws_async_send(void *arg)
     httpd_handle_t hd = resp_arg->hd;
     int fd = resp_arg->fd;
 
-    char buff[4];
-    memset(buff, 0, sizeof(buff));
-
+    char *buff = "Hello!";
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.payload = (uint8_t *)buff;
     ws_pkt.len = strlen(buff);
