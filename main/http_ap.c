@@ -148,10 +148,9 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
             return ret;
         }
         ESP_LOGI(TAG, "Got packet with message: %s", ws_pkt.payload);
+        DisplayShowMessage((char *) ws_pkt.payload, DSE_NONE, 1);
     }
-
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
-    DisplayShowMessage((char *) ws_pkt.payload, DSE_NONE, 1);
 
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT)
     {

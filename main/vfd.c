@@ -54,6 +54,7 @@
 #include <stdio.h>
 #include "driver/spi_master.h"
 #include "driver/gptimer.h"
+#include "driver/gpio.h"
 #include "string.h"
 
 #define PIN_NUM_MOSI 13
@@ -157,9 +158,25 @@ void vfd_init(void)
         .post_cb = NULL,
     };
 
+    gpio_config_t gpioCfg = {
+        // disable interrupt
+        .intr_type = GPIO_INTR_DISABLE,
+        // set as output mode
+        .mode = GPIO_MODE_OUTPUT,
+        // bit mask of the pins that you want to set,e.g.GPIO18/19
+        .pin_bit_mask = 1UL << GPIO_NUM_27,
+        // disable pull-down mode
+        .pull_down_en = 0,
+        // disable pull-up mode
+        .pull_up_en = 0
+    };
+    gpio_config(&gpioCfg);
+    gpio_set_level(GPIO_NUM_27, 0);
+
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &spi2);
     ESP_ERROR_CHECK(ret);
     vfd_set_data("          ");
+
 
     gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT,
