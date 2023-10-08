@@ -39,6 +39,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 
 void wifi_init_softap(void)
 {
+    esp_netif_create_default_wifi_ap();
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                                                         WIFI_EVENT_AP_STACONNECTED,
                                                         &wifi_event_handler,

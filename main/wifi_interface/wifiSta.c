@@ -16,6 +16,14 @@
 #define TAG "WIFI STA"
 
 static int s_retry_num = 0;
+typedef enum connectionStatus_e
+{
+    STA_DISCONNECTED,
+    STA_CONNECTED,
+    STA_CONNECTING
+} connectionStatus_t;
+
+connectionStatus_t staState;
 
 static void wifi_sta_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data)
@@ -26,22 +34,27 @@ static void wifi_sta_event_handler(void* arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
     {
         ESP_LOGI(TAG, "<STA> WIFI_EVENT_STA_START");
+        staState = STA_CONNECTING;
+        backendWiFiEvent(BWS_STA_CONNECTING, NULL);
         esp_wifi_connect();
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED)
     {
         backendWiFiEvent(BWS_STA_CONNECTED, NULL);
         DisplayShowMessage("ConnEctEd", DSE_NONE, 1000);
+        staState = STA_CONNECTING;
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
-        backendWiFiEvent(BWS_STA_DISCONNECTED, NULL);
         DisplayShowMessage("dISconn", DSE_NONE, 1000);
+        
         if (s_retry_num < 3) {
             if (!s_retry_num)
             {
                 ESP_LOGI(TAG, "<STA> WIFI_EVENT_STA_DISCONNECTED");
             }
+            backendWiFiEvent(BWS_STA_CONNECTING, NULL);
+            staState = STA_CONNECTING;
             ESP_LOGI(TAG, "<STA> Try to reconnect 1...");
             esp_wifi_connect();
             s_retry_num++;
@@ -49,6 +62,8 @@ static void wifi_sta_event_handler(void* arg, esp_event_base_t event_base,
         {
             ESP_LOGI(TAG, "<STA> Failed to connect...");
             DisplayShowMessage("con Error", DSE_NONE, 1000);
+            staState = STA_DISCONNECTED;
+            backendWiFiEvent(BWS_STA_OTHERERROR, NULL);
         }
     }
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
@@ -59,6 +74,7 @@ static void wifi_sta_event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "got ip: %s", ipstr); 
         backendWiFiEvent(BWS_STA_IPGOT, ipstr);
         DisplayShowMessage("IP GOt", DSE_NONE, 1000);
+        staState = STA_CONNECTED;
         s_retry_num = 0;
     }
     else
@@ -98,7 +114,14 @@ void wifiStaChangeAP(const char *ssid, const char *pass)
     strncpy((char *) wifi_config_sta.sta.ssid, ssid, 32);
     strncpy((char *) wifi_config_sta.sta.password, pass, 64);
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config_sta));
+    if (staState == STA_DISCONNECTED)
+    {
+        esp_wifi_connect();
+    }
+    else
+    {
     esp_wifi_disconnect();
+    }
 }
 
 void wifiStaGetAP(char *ssid, char *pass)

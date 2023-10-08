@@ -9,6 +9,7 @@ char *backendGetStateJSON(void);
 
 typedef enum backendWifiEvent_e
 {
+    BWS_STA_CONNECTING,
     BWS_STA_CONNECTED,
     BWS_STA_DISCONNECTED,
     BWS_STA_IPGOT,

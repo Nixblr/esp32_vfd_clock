@@ -249,5 +249,5 @@ static void send_raw_data(uint32_t raw)
     transaction.tx_buffer = dat;
     transaction.length = 3 * 8;
     ret = spi_device_queue_trans(spi2, &transaction, 0);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
 }

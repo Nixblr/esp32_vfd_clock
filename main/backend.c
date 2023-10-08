@@ -123,6 +123,10 @@ void backendWiFiEvent(backendWifiEvent_t e, void* arg)
         wifiCfg.state = 4;
         break;
 
+    case BWS_STA_CONNECTING:
+        wifiCfg.state = 3;
+        break;
+
     default:
         wifiCfg.state = 0;
         break;
