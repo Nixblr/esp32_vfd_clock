@@ -1,6 +1,6 @@
 
 
-#include "http_ap.h"
+#include "http.h"
 
 #include <esp_wifi.h>
 #include <esp_event.h>
@@ -15,13 +15,16 @@
 #include <esp_http_server.h>
 #include "display.h"
 #include <string.h>
+#include "backend.h"
 
-static const char *TAG = "http_ap";
+static const char *TAG = "http";
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[] asm("_binary_index_html_end");
 extern const char style_start[] asm("_binary_style_css_start");
 extern const char style_end[] asm("_binary_style_css_end");
+extern const char script_start[] asm("_binary_script_js_start");
+extern const char script_end[] asm("_binary_script_js_end");
 
 struct async_resp_arg
 {
@@ -50,6 +53,28 @@ static esp_err_t style_get_handler(httpd_req_t *req)
     }
     httpd_resp_set_type(req, "text/css");
     httpd_resp_send(req, style_start, style_len);
+
+    return ESP_OK;
+}
+
+/* Script */
+static esp_err_t script_get_handler(httpd_req_t *req)
+{
+    char *buf;
+    size_t buf_len;
+    const size_t script_len = script_end - script_start;
+    buf_len = httpd_req_get_hdr_value_len(req, "Host") + 1;
+    if (buf_len > 1)
+    {
+        buf = malloc(buf_len);
+        if (httpd_req_get_hdr_value_str(req, "Host", buf, buf_len) == ESP_OK)
+        {
+            ESP_LOGI(TAG, "Found header => Host: %s", buf);
+        }
+        free(buf);
+    }
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, script_start, script_len);
 
     return ESP_OK;
 }
@@ -147,8 +172,7 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
             free(buf);
             return ret;
         }
-        ESP_LOGI(TAG, "Got packet with message: %s", ws_pkt.payload);
-        DisplayShowMessage((char *) ws_pkt.payload, DSE_NONE, 1);
+        backendProcessData(ws_pkt.payload);
     }
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
@@ -166,13 +190,7 @@ static void ws_async_send(void *arg)
     httpd_ws_frame_t ws_pkt;
     struct async_resp_arg *resp_arg = arg;
     httpd_handle_t hd = resp_arg->hd;
-    int fd = resp_arg->fd;
-
-    char *buff = "Hello!";
-    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-    ws_pkt.payload = (uint8_t *)buff;
-    ws_pkt.len = strlen(buff);
-    ws_pkt.type = HTTPD_WS_TYPE_TEXT;
+    //int fd = resp_arg->fd;
 
     static size_t max_clients = CONFIG_LWIP_MAX_LISTENING_TCP;
     size_t fds = max_clients;
@@ -182,6 +200,7 @@ static void ws_async_send(void *arg)
 
     if (ret != ESP_OK)
     {
+        free(resp_arg);
         return;
     }
 
@@ -190,7 +209,13 @@ static void ws_async_send(void *arg)
         int client_info = httpd_ws_get_fd_info(server, client_fds[i]);
         if (client_info == HTTPD_WS_CLIENT_WEBSOCKET)
         {
+            char *buff = backendGetStateJSON();
+            memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
+            ws_pkt.payload = (uint8_t *)buff;
+            ws_pkt.len = strlen(buff);
+            ws_pkt.type = HTTPD_WS_TYPE_TEXT;
             httpd_ws_send_frame_async(hd, client_fds[i], &ws_pkt);
+            free(buff);
         }
     }
     free(resp_arg);
@@ -208,6 +233,11 @@ static const httpd_uri_t style = {
     .uri = "/style.css",
     .method = HTTP_GET,
     .handler = style_get_handler,
+    .user_ctx = NULL};
+static const httpd_uri_t script = {
+    .uri = "/script.js",
+    .method = HTTP_GET,
+    .handler = script_get_handler,
     .user_ctx = NULL};
 static const httpd_uri_t hello = {
     .uri = "/",
@@ -258,6 +288,7 @@ static httpd_handle_t start_webserver(void)
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
         httpd_register_uri_handler(server, &style);
+        httpd_register_uri_handler(server, &script);
         httpd_register_uri_handler(server, &hello);
         httpd_register_uri_handler(server, &hello_post);
         httpd_register_uri_handler(server, &ws);

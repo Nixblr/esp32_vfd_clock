@@ -1,3 +1,3 @@
-idf_component_register(SRCS "wifiSta.c" "display.c" "http_ap.c" "wifiap.c" "main.c" "vfd.c"
+idf_component_register(SRCS "backend.c" "http.c" "wifiSta.c" "display.c" "http.c" "wifiap.c" "main.c" "vfd.c"
                     INCLUDE_DIRS "."
-                    EMBED_FILES "index.html" "style.css")
+                    EMBED_FILES "../frontend/index.html" "../frontend/style.css" "../frontend/script.js")

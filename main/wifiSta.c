@@ -9,6 +9,8 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
+#include "backend.h"
+
 #define TAG "WIFI STA"
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -51,10 +53,14 @@ static void wifi_sta_event_handler(void* arg, esp_event_base_t event_base,
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        char ipstr[32];
+        sprintf(ipstr, IPSTR, IP2STR(&event->ip_info.ip));
+        ESP_LOGI(TAG, "got ip: %s", ipstr); 
+        backendWiFiIPGot(ipstr);
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
+
     else
     {
         ESP_LOGI(TAG, "<EVENT> Base: %d; Id: %d", (int) event_base, (int) event_id);

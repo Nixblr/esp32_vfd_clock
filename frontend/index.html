@@ -1,0 +1,407 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>ESP32 Web Server</title>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="sensor_data_2023.10.3.csv">
+</head>
+
+<body>
+    <div class="topnav">
+        <h1>VFD Clock settings</h1>
+    </div>
+
+    <div class="content">
+        <div class="card">
+
+
+            <h2>VFD Screen</h2>
+            <p class="state">Screen ON/OFF:
+                <label class="switch" style="float:right">
+                    <input type="checkbox" id="cmp_sw">
+                    <span class="slider round"></span>
+                </label>
+            </p>
+
+            <p class="state" id="status">Status:
+            </p>
+
+            <h2>Сalibration constants</h2>
+
+            <!-- TODO подогнать размерности полей под размеры в камне -->
+
+            <p class="state" id="p_trend_display_time">Fan speed:
+                <input class="inputField" style="float:right" id="fan_speed" placeholder="100"
+                    onkeyup="this.value = this.value.replace(/[^0-9]/g, '');">
+            </p>
+
+            <h2>Sensor data</h2>
+
+            <p class="state">Dewpoint(estimated):
+                <input class="inputField " style="float:right" id="dewpoint" placeholder="10"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');" readonly>
+            </p>
+
+            <h2>Wi-Fi settings</h2>
+
+            <p class="state">Состояние Wi-Fi:
+                <input class="inputField" style="float:right" id="wifi_state" placeholder="Неизвестно..."
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');" readonly>
+            </p>
+
+            <p class="state">IP Address:
+                <input class="inputField" style="float:right" id="wifi_ip" placeholder="---"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');" readonly>
+            </p>
+
+            <p class="state">Wi-Fi login:
+                <input class="inputField" style="float:right" id="wifi_ssid" placeholder="login"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+
+            <p class="state">Wi-Fi pass:
+                <input class="inputField" style="float:right; -webkit-text-security: disc" id="wifi_pass"
+                    placeholder="password" onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <button id="update_wifi" class="button">Apply changes</button>
+            
+            <h2>Другие настройки</h2>
+
+            <div class="state">Time zone:
+                <select class="timeSelect" style="float:right" id="time_zone">
+                    <!-- set time correct only when change -/+ utc -->
+                    <option value="UTC-12">(UTC-12:00)</option>
+                    <option value="UTC+11">(UTC-11:00)</option>
+                    <option value="UTC+10">(UTC-10:00)</option>
+                    <option value="UTC+09">(UTC-09:00)</option>
+                    <option value="UTC+08">(UTC-08:00)</option>
+                    <option value="UTC+07">(UTC-07:00)</option>
+                    <option value="UTC+06">(UTC-06:00)</option>
+                    <option value="UTC+05">(UTC-05:00)</option>
+                    <option value="UTC+04">(UTC-04:00)</option>
+                    <option value="UTC+03">(UTC-03:00)</option>
+                    <option value="UTC+02">(UTC-02:00)</option>
+                    <option value="UTC+01">(UTC-01:00)</option>
+
+                    <option value="UTC-00">(UTC-00:00)</option>
+                    <option value="UTC-01">(UTC+01:00)</option>
+                    <option value="UTC-02">(UTC+02:00)</option>
+                    <option value="UTC-03">(UTC+03:00)</option>
+                    <option value="UTC-04">(UTC+04:00)</option>
+                    <option value="UTC-05">(UTC+05:00)</option>
+                    <option value="UTC-06">(UTC+06:00)</option>
+                    <option value="UTC-07">(UTC+07:00)</option>
+                    <option value="UTC-08">(UTC+08:00)</option>
+                    <option value="UTC-09">(UTC+09:00)</option>
+                    <option value="UTC-10">(UTC+10:00)</option>
+                    <option value="UTC-11">(UTC+11:00)</option>
+                    <option value="UTC-12">(UTC+12:00)</option>
+                </select>
+            </div>
+
+            <h2>MQTT settings</h2>
+
+            <p class="state">Server address:
+                <input class="inputField" style="float:right" id="address" placeholder="address"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?./:]/g, '');">
+            </p>
+            <p class="state">Server port:
+                <input class="inputField" style="float:right" id="port" placeholder="port"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">ID:
+                <input class="inputField" style="float:right" id="id" placeholder="id"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?./:-]/g, '');">
+            </p>
+            <p class="state">User name:
+                <input class="inputField" style="float:right" id="name" placeholder="name"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">User password:
+                <input class="inputField" style="float:right" id="pass" placeholder="pass"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">Topic name:
+                <input class="inputField" style="float:right" id="topic" placeholder="topic"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+
+
+            <h2>NB-IoT settings</h2>
+
+            <p class="state">APN:
+                <input class="inputField" style="float:right" id="apn" placeholder="apn"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">Frequency band:
+                <input class="inputField" style="float:right" id="fr_band" placeholder="fr_band"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">PSM periodic:
+                <input class="inputField" style="float:right" id="psm_periodic" placeholder="psm_periodic"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">PSM Active:
+                <input class="inputField" style="float:right" id="psm_active" placeholder="psm_active"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">Dispatch period:
+                <input class="inputField" style="float:right" id="dsp_period" placeholder="dsp_period"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+            <p class="state">Encryption key:
+                <input class="inputField" style="float:right" id="key" placeholder="key"
+                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
+            </p>
+
+            <p class="state">Serial number:
+                <input class="inputField" style="float:right" id="sn" placeholder="sn">
+            </p>
+            <p class="state">Firmware version:
+                <input class="inputField" style="float:right" id="fw_version" placeholder="fw_version">
+            </p>
+
+            <h2></h2>
+            <!-- TODO add wifi mode change -->
+            <!-- <button id="change_mode" class="button">Change Wi-fi mode</button> -->
+            <button id="save_settings" class="button">Save settings</button>
+            <!-- TODO add filesystem upd, when fw upd press select file and show msg (upd fw) -->
+            <!-- FIXME upd ota button -->
+            <input type="file" id="otafile" name="otafile" title="Select file" class="fileselect" />
+            <button id="fw_update" class="button" onclick="updateFirmware()">Firmware update</button>
+
+            </p>
+
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+
+        var gateway = `ws://${window.location.hostname}/ws`;
+        var websocket;
+        
+        function initWebSocket() {
+            console.log('Trying to open a WebSocket connection...');
+            websocket = new WebSocket(gateway);
+            websocket.onopen = onOpen;
+            websocket.onclose = onClose;
+            websocket.onmessage = onMessage;
+        }
+
+        function onOpen(event) {
+            console.log('Connection opened');
+        }
+
+        function onClose(event) {
+            console.log('Connection closed');
+            setTimeout(initWebSocket, 2000);
+        }
+
+        /*Process incoming data*/
+        function onMessage(event) {
+            console.log(event.data);
+            var data = JSON.parse(event.data);
+            console.log(data.wifiData)
+            document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
+            document.getElementById('wifi_state').value = data.wifiData.wifi_state;
+        }
+
+        window.addEventListener('load', initWebSocket);
+
+        /* save settings */
+        document.getElementById('save_settings').addEventListener('click', function (e) {
+            e.preventDefault();
+            setSettings();
+            alert("Settings updated");
+        }, false);
+
+        /* save settings */
+        document.getElementById('update_wifi').addEventListener('click', function (e) {
+            e.preventDefault();
+            updateWifi();
+        }, false);
+
+        document.getElementById('cmp_sw').addEventListener('change', function (e) {
+            e.preventDefault();
+            sendCmdCompressor();
+        }, false);
+
+        document.getElementById('fan_sw').addEventListener('change', function (e) {
+            e.preventDefault();
+            sendCmdFan();
+        }, false);
+
+        function sendCmdCompressor(event) {
+            xhr = new (XMLHttpRequest);
+            xhr.open("GET", 'index.html?cmp_sw=' + document.getElementById('cmp_sw').checked);
+            xhr.send(null);
+        }
+
+        function changeMode(event) {
+            xhr = new (XMLHttpRequest);
+            xhr.open("POST", "index.html", true);
+            xhr.responseType = "json";
+            xhr.send("change_mode");
+        }
+
+        function setSettings(event) {
+            xhr = new (XMLHttpRequest);
+            console.log('set_settings');
+
+            var settings = {
+                cmd: "set_settings",
+                cmp_sw: (parseInt((document.getElementById('cmp_sw').checked) ? 1 : 0)),
+
+                fan_speed: parseInt(document.getElementById('fan_speed').value),
+
+                wifi_ssid: document.getElementById('wifi_ssid').value,
+                wifi_pass: document.getElementById('wifi_pass').value,
+                time_zone: document.getElementById('time_zone').value,
+
+                address: document.getElementById('address').value,
+                port: document.getElementById('port').value,
+                id: document.getElementById('id').value,
+                name: document.getElementById('name').value,
+                pass: document.getElementById('pass').value,
+                topic: document.getElementById('topic').value,
+
+                apn: document.getElementById('apn').value,
+                fr_band: document.getElementById('fr_band').value,
+                psm_periodic: document.getElementById('psm_periodic').value,
+                psm_active: document.getElementById('psm_active').value,
+                dsp_period: document.getElementById('dsp_period').value,
+                key: document.getElementById('key').value,
+            };
+
+            var data = JSON.stringify(settings);
+            xhr.open("POST", "index.html?", true);
+            xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+            xhr.send(data);
+        }
+
+        function getSettings() {
+            console.log("get_settings");
+            xhr = new (XMLHttpRequest);
+            xhr.open("POST", "index.html", true);
+            xhr.responseType = "json";
+            xhr.send("get_settings");
+            xhr.onload = function (oEvent) {
+                const data = xhr.response;
+                console.log(data);
+
+                document.getElementById('cmp_sw').checked = data.cmp_sw > 0 ? true : false;
+                document.getElementById('fan_speed').value = data.fan_speed;
+
+                document.getElementById('wifi_ssid').value = data.wifi_ssid;
+                document.getElementById('wifi_pass').value = data.wifi_pass;
+                document.getElementById('time_zone').value = data.time_zone;
+
+                document.getElementById('address').value = data.address;
+                document.getElementById('port').value = data.port;
+                document.getElementById('id').value = data.id;
+                document.getElementById('name').value = data.name;
+                document.getElementById('pass').value = data.pass;
+                document.getElementById('topic').value = data.topic;
+
+                document.getElementById('apn').value = data.apn;
+                document.getElementById('fr_band').value = data.fr_band;
+                document.getElementById('psm_periodic').value = data.psm_periodic;
+                document.getElementById('psm_active').value = data.psm_active;
+                document.getElementById('dsp_period').value = data.dsp_period;
+                document.getElementById('key').value = data.key;
+
+                document.getElementById('sn').value = data.sn;
+                document.getElementById('fw_version').value = data.fw_version;
+
+            }
+        }
+
+        function getSensorData() {
+            xhr = new (XMLHttpRequest);
+            xhr.open("POST", "index.html", true);
+            xhr.responseType = "json";
+            xhr.send("get_sensor_data");
+            xhr.onload = function (oEvent) {
+                const data = xhr.response;
+                console.log(data);
+                if (data != null) {
+                    document.getElementById('status').innerText = data.status;
+                    document.getElementById('dewpoint').value = data.dewpoint.toFixed(2);
+                    document.getElementById('temp_inside').value = data.temp_inside.toFixed(2);
+                    document.getElementById('temp_outside').value = data.temp_outside.toFixed(2);
+                    document.getElementById('humidity_inside').value = data.humidity_inside.toFixed(2);
+                    document.getElementById('humidity_outside').value = data.humidity_outside.toFixed(2);
+                    document.getElementById('water_level').value = data.water_level.toFixed(2);
+                    document.getElementById('fan_speed_dev').value = data.fan_speed.toFixed(2);
+                    document.getElementById('ntc_dehumidifier_in').value = data.ntc_dehumidifier_in.toFixed(2);
+                    document.getElementById('ntc_dehumidifier_out').value = data.ntc_dehumidifier_out.toFixed(2);
+                    document.getElementById('ntc_compressor').value = data.ntc_compressor.toFixed(2);
+                    document.getElementById('ntc_pannel').value = data.ntc_pannel.toFixed(2);
+                }
+
+            }
+        }
+
+        function updateFirmware() {
+            var otafile = document.getElementById("otafile").files;
+
+            if (otafile.length == 0) {
+                alert("No file selected!");
+            } else {
+                document.getElementById("otafile").disabled = true;
+                document.getElementById("fw_update").disabled = true;
+
+                var file = otafile[0];
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        if (xhr.status == 200) {
+                            document.open();
+                            document.write(xhr.responseText);
+                            document.close();
+                        } else if (xhr.status == 0) {
+                            alert("Server closed the connection abruptly!");
+                            location.reload()
+                        } else {
+                            alert(xhr.status + " Error!\n" + xhr.responseText);
+                            location.reload()
+                        }
+                    }
+                };
+
+                xhr.upload.onprogress = function (e) {
+                    var progress = document.getElementById("fw_update");
+                    progress.textContent = "DFU progress: " + (e.loaded / e.total * 100).toFixed(0) + "%";
+                    if ((e.loaded / e.total * 100) == 100) {
+                        setTimeout(() => { location.reload(); }, 10 * 1000);
+                    }
+                };
+                xhr.open("POST", "/ota", true);
+                xhr.send(file);
+
+            }
+        }
+
+        function updateWifi(event)
+        {
+            console.log('updateWifi');
+
+            var wifisettings = {
+                cmd: "updateWifi",
+                wifi_ssid: document.getElementById('wifi_ssid').value,
+                wifi_pass: document.getElementById('wifi_pass').value
+            };
+            var data = JSON.stringify(wifisettings);
+            websocket.send(data);
+        }
+
+    </script>
+
+</body>
+
+</html>
