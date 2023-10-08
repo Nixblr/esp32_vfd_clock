@@ -19,7 +19,10 @@
     "queue.h": "c",
     "string.h": "c",
     "esp_log.h": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "esp_wifi.h": "c",
+    "esp_system.h": "c",
+    "esp_event.h": "c"
   },
   "idf.adapterTargetName": "esp32",
   "idf.openOcdConfigs": [

@@ -1,1 +1,0 @@
-void wifiap_create(void);
