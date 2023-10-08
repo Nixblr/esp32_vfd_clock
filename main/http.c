@@ -142,7 +142,7 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
-        return ESP_OK;
+        return trigger_async_send(req->handle, req);
     }
 
     httpd_ws_frame_t ws_pkt;
@@ -227,6 +227,18 @@ static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
     resp_arg->hd = req->handle;
     resp_arg->fd = httpd_req_to_sockfd(req);
     return httpd_queue_work(handle, ws_async_send, resp_arg);
+}
+
+esp_err_t webInterfaceUpdateToClients(void)
+{
+    if (server == NULL)
+    {
+        return ESP_FAIL;
+    }
+    struct async_resp_arg *resp_arg = malloc(sizeof(struct async_resp_arg));
+    resp_arg->hd = server;
+    resp_arg->fd = 0;
+    return httpd_queue_work(server, ws_async_send, resp_arg);
 }
 
 static const httpd_uri_t style = {

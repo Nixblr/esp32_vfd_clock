@@ -2,19 +2,28 @@
 #include <string.h>
 #include "backend.h"
 #include "cJSON.h"
+#include "wifi_interface.h"
+#include "http.h"
 
 static const char *TAG = "backend";
-static const char* const wifiStateList[] = {"UNKNOWN", "CONNECTED", "CONNECTING", "ERR_UNKN", "ERR_AUTH"};
+static const char* const wifiStateList[] = {"UNKNOWN", "WAIT_IP", "CONNECTED", "CONNECTING", "ERR_UNKN", "ERR_AUTH", "DISCONNECTED"};
 
 typedef struct WifiCfg_s
 {
     char ssid[32];
-    char password[32];
+    char password[64];
     char sta_ip[32];
     uint8_t state;
 } wifiCfg_t;
 
 wifiCfg_t wifiCfg = {0};
+
+void backendSetInitialStaCfg(const char *ssid, const char *pass)
+{
+    strncpy(wifiCfg.ssid, ssid, 32);
+    strncpy(wifiCfg.password, pass, 64);
+    webInterfaceUpdateToClients();
+}
 
 int32_t backendProcessData(uint8_t *data)
 {
@@ -35,14 +44,15 @@ int32_t backendProcessData(uint8_t *data)
     }
     if (cJSON_GetObjectItem(cjson, "wifi_ssid") != NULL)
     {
-        strncpy((char *) wifiCfg.ssid, cJSON_GetObjectItem(cjson, "wifi_ssid")->valuestring, 32);
+        strncpy(wifiCfg.ssid, cJSON_GetObjectItem(cjson, "wifi_ssid")->valuestring, 32);
     }
     if (cJSON_GetObjectItem(cjson, "wifi_pass") != NULL)
     {
-        strncpy((char *) wifiCfg.password, cJSON_GetObjectItem(cjson, "wifi_pass")->valuestring, 32);
+        strncpy(wifiCfg.password, cJSON_GetObjectItem(cjson, "wifi_pass")->valuestring, 64);
     }
     cJSON_Delete(cjson);
     ESP_LOGI(TAG, "WIFI Cfg: %s / %s", wifiCfg.ssid, wifiCfg.password);
+    wifiStaChangeAP(wifiCfg.ssid, wifiCfg.password);
     return 0;
 }
 
@@ -88,7 +98,34 @@ char *backendGetStateJSON(void)
     return retStr;
 }
 
-void backendWiFiIPGot(char* newIP)
+void backendWiFiEvent(backendWifiEvent_t e, void* arg)
 {
-    strncpy(wifiCfg.sta_ip, newIP, 32);
+    switch (e)
+    {
+    case BWS_STA_CONNECTED:
+        wifiCfg.state = 1;
+        break;
+    case BWS_STA_IPGOT:
+        wifiCfg.state = 2;
+        strncpy(wifiCfg.sta_ip, (char *)arg, 32);
+        break;
+
+    case BWS_STA_DISCONNECTED:
+        wifiCfg.state = 6;
+        wifiCfg.sta_ip[0] = '\0';
+        break;
+
+    case BWS_STA_AUTHERROR:
+        wifiCfg.state = 5;
+        break;
+
+    case BWS_STA_OTHERERROR:
+        wifiCfg.state = 4;
+        break;
+
+    default:
+        wifiCfg.state = 0;
+        break;
+    }
+    webInterfaceUpdateToClients();
 }

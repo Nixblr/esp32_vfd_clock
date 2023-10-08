@@ -104,6 +104,7 @@ const graph_element_t graph_conv_table[] = {
     {'9', SEG_A &SEG_B &SEG_C &SEG_D &SEG_F &SEG_G},
     {'A', SEG_A &SEG_B &SEG_C &SEG_E &SEG_F &SEG_G},
     {'b', SEG_C &SEG_D &SEG_E &SEG_F &SEG_G},
+    {'c', SEG_D &SEG_E &SEG_G},
     {'C', SEG_A &SEG_D &SEG_E &SEG_F},
     {'d', SEG_B &SEG_C &SEG_D &SEG_E &SEG_G},
     {'E', SEG_A &SEG_D &SEG_E &SEG_F &SEG_G},

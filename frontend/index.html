@@ -209,6 +209,7 @@
             console.log(data.wifiData)
             document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
             document.getElementById('wifi_state').value = data.wifiData.wifi_state;
+            document.getElementById('wifi_ssid').value = data.wifiData.wifi_ssid;
         }
 
         window.addEventListener('load', initWebSocket);
