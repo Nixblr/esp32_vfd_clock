@@ -97,14 +97,6 @@ void wifi_init_sta(void)
                                                         &wifi_sta_event_handler,
                                                         NULL,
                                                         NULL));
-    /*wifi_config_t wifi_config_sta = {
-        .sta = {
-            .ssid = "",
-            .password = "",
-            .threshold.authmode = WIFI_AUTH_WPA2_PSK
-        },
-    };
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config_sta));*/
 }
 
 void wifiStaChangeAP(const char *ssid, const char *pass)

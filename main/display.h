@@ -19,5 +19,7 @@ typedef struct DisplayMessage_s
 
 void DisplayInit(void);
 int DisplayShowMessage(const char *text, displayShowEffect_t effect, uint32_t showTime);
+void DisplaySetTimezone(int tz);
+int DisplayGetTimezone(void);
 
 #endif

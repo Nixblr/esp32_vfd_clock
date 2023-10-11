@@ -22,7 +22,10 @@
     "freertos.h": "c",
     "esp_wifi.h": "c",
     "esp_system.h": "c",
-    "esp_event.h": "c"
+    "esp_event.h": "c",
+    "esp_sntp.h": "c",
+    "sntp.h": "c",
+    "esp_err.h": "c"
   },
   "idf.adapterTargetName": "esp32",
   "idf.openOcdConfigs": [

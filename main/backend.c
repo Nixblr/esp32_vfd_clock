@@ -4,9 +4,16 @@
 #include "cJSON.h"
 #include "wifi_interface.h"
 #include "http.h"
+#include "display.h"
+#include "stdbool.h"
 
 static const char *TAG = "backend";
 static const char* const wifiStateList[] = {"UNKNOWN", "WAIT_IP", "CONNECTED", "CONNECTING", "ERR_UNKN", "ERR_AUTH", "DISCONNECTED"};
+
+static void setWiFi(cJSON *csjon);
+static void setTimezone(cJSON *cjson);
+static bool getWiFiStateJSON(cJSON *parent);
+static bool getTimezoneJSON(cJSON *parent);
 
 typedef struct WifiCfg_s
 {
@@ -22,7 +29,7 @@ void backendSetInitialStaCfg(const char *ssid, const char *pass)
 {
     strncpy(wifiCfg.ssid, ssid, 32);
     strncpy(wifiCfg.password, pass, 64);
-    webInterfaceUpdateToClients();
+    webInterfaceUpdateToClients(BR_FULL);
 }
 
 int32_t backendProcessData(uint8_t *data)
@@ -38,10 +45,22 @@ int32_t backendProcessData(uint8_t *data)
         return -1;
     }
 
-    if (cJSON_GetObjectItem(cjson, "cmd") != NULL)
+    if (cJSON_GetObjectItem(cjson, "wifi_ssid") != NULL)
     {
-        strncpy(cmd, cJSON_GetObjectItem(cjson, "cmd")->valuestring, 64);
+        setWiFi(cjson);
     }
+
+    if (cJSON_GetObjectItem(cjson, "timezone") != NULL)
+    {
+        setTimezone(cjson);
+    }
+
+    cJSON_Delete(cjson);
+    return 0;
+}
+
+static void setWiFi(cJSON *cjson)
+{
     if (cJSON_GetObjectItem(cjson, "wifi_ssid") != NULL)
     {
         strncpy(wifiCfg.ssid, cJSON_GetObjectItem(cjson, "wifi_ssid")->valuestring, 32);
@@ -50,45 +69,52 @@ int32_t backendProcessData(uint8_t *data)
     {
         strncpy(wifiCfg.password, cJSON_GetObjectItem(cjson, "wifi_pass")->valuestring, 64);
     }
-    cJSON_Delete(cjson);
     ESP_LOGI(TAG, "WIFI Cfg: %s / %s", wifiCfg.ssid, wifiCfg.password);
     wifiStaChangeAP(wifiCfg.ssid, wifiCfg.password);
-    return 0;
 }
 
-char *backendGetStateJSON(void)
+static void setTimezone(cJSON *cjson)
+{
+    int tz;
+    if (cJSON_IsNumber(cJSON_GetObjectItem(cjson, "timezone")))
+    {
+        tz = cJSON_GetObjectItem(cjson, "timezone")->valueint;
+        if (tz != DisplayGetTimezone())
+        {
+            DisplaySetTimezone(tz);
+            webInterfaceUpdateToClients(BR_TIMEZONE);
+        }
+    }
+}
+
+char *backendGetStateJSON(backendRequest_t rd)
 {
     char *retStr = NULL;
     const cJSON *devStateData = NULL;
-    const cJSON *wifiData = NULL;
 
     devStateData = cJSON_CreateObject();
     if (devStateData == NULL)
     {
         return NULL;
     }
-    wifiData = cJSON_CreateObject();
-    if (wifiData == NULL)
+    if (rd == BR_WIFI || rd == BR_FULL)
     {
-        cJSON_Delete(devStateData);
-        return NULL;
+        if (getWiFiStateJSON(devStateData) == false)
+        {
+            cJSON_Delete(devStateData);
+            return NULL;
+        }
     }
-    cJSON_AddItemToObjectCS(devStateData, "wifiData", wifiData);
-    if (cJSON_AddStringToObject(wifiData, "wifi_ssid", wifiCfg.ssid) == NULL)
+
+    if (rd == BR_TIMEZONE || rd == BR_FULL)
     {
-        cJSON_Delete(devStateData);
-        return NULL;
+        if (getTimezoneJSON(devStateData) == false)
+        {
+            cJSON_Delete(devStateData);
+            return NULL;
+        }
     }
-    if (cJSON_AddStringToObject(wifiData, "wifi_sta_ip", wifiCfg.sta_ip) == NULL)
-    {
-        cJSON_Delete(devStateData);
-        return NULL;
-    }
-    if (cJSON_AddStringToObject(wifiData, "wifi_state", wifiStateList[wifiCfg.state]) == NULL)
-    {
-        cJSON_Delete(devStateData);
-        return NULL;
-    }
+
     retStr = cJSON_Print(devStateData);
     if (retStr == NULL)
     {
@@ -96,6 +122,42 @@ char *backendGetStateJSON(void)
         return NULL;
     }
     return retStr;
+}
+
+static bool getWiFiStateJSON(cJSON *parent)
+{
+    const cJSON *wifiData = NULL;
+    wifiData = cJSON_CreateObject();
+    if (wifiData == NULL)
+    {
+        return false;
+    }
+    if (cJSON_AddStringToObject(wifiData, "wifi_ssid", wifiCfg.ssid) == NULL)
+    {
+        cJSON_Delete(wifiData);
+        return false;
+    }
+    if (cJSON_AddStringToObject(wifiData, "wifi_sta_ip", wifiCfg.sta_ip) == NULL)
+    {
+        cJSON_Delete(wifiData);
+        return false;
+    }
+    if (cJSON_AddStringToObject(wifiData, "wifi_state", wifiStateList[wifiCfg.state]) == NULL)
+    {
+        cJSON_Delete(wifiData);
+        return false;
+    }
+    cJSON_AddItemToObjectCS(parent, "wifiData", wifiData);
+    return true;
+}
+
+static bool getTimezoneJSON(cJSON *parent)
+{
+    if (cJSON_AddNumberToObject(parent, "timezone", DisplayGetTimezone()) == NULL)
+    {
+        return false;
+    }
+    return true;
 }
 
 void backendWiFiEvent(backendWifiEvent_t e, void* arg)
@@ -131,5 +193,5 @@ void backendWiFiEvent(backendWifiEvent_t e, void* arg)
         wifiCfg.state = 0;
         break;
     }
-    webInterfaceUpdateToClients();
+    webInterfaceUpdateToClients(BR_WIFI);
 }
