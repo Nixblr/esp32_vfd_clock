@@ -165,10 +165,13 @@
             console.log(event.data);
             var data = JSON.parse(event.data);
             console.log(data.wifiData)
-            document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
-            document.getElementById('wifi_state').value = data.wifiData.wifi_state;
-            document.getElementById('wifi_ssid').value = data.wifiData.wifi_ssid;
-            document.getElementById('time_zone').value = data.wifiData.timezone;
+            if(data.hasOwnProperty('wifiData'))
+            {
+                document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
+                document.getElementById('wifi_state').value = data.wifiData.wifi_state;
+                document.getElementById('wifi_ssid').value = data.wifiData.wifi_ssid;
+            }
+            document.getElementById('time_zone').selectedIndex = data.timezone;
         }
 
         window.addEventListener('load', initWebSocket);
@@ -198,9 +201,12 @@
             xhr.onload = function (oEvent) {
                 const data = xhr.response;
                 console.log(data);
-                document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
-                document.getElementById('wifi_state').value = data.wifiData.wifi_state;
-                document.getElementById('wifi_ssid').value = data.wifiData.wifi_ssid;
+                if(data.hasOwnProperty('wifiData'))
+                {
+                    document.getElementById('wifi_ip').value = data.wifiData.wifi_sta_ip;
+                    document.getElementById('wifi_state').value = data.wifiData.wifi_state;
+                    document.getElementById('wifi_ssid').value = data.wifiData.wifi_ssid;
+                }
                 document.getElementById('time_zone').selectedIndex = data.timezone;
             }
         }

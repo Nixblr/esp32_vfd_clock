@@ -35,7 +35,7 @@ struct async_resp_arg
 };
 static httpd_handle_t server = NULL;
 
-static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req);
+//static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req);
 
 /* Style */
 static esp_err_t style_get_handler(httpd_req_t *req)
@@ -131,7 +131,6 @@ static esp_err_t sendDataHandler(httpd_req_t *req)
         }
         rem -= ret;
     }
-    ESP_LOGI(TAG, "Found string =>  %s", b2);
     char *buff = backendGetStateJSON(BR_FULL);
     size_t l = strlen(buff);
     httpd_resp_send(req, buff, l);
@@ -178,12 +177,6 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
         backendProcessData(ws_pkt.payload);
     }
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
-
-    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT)
-    {
-        free(buf);
-        return trigger_async_send(req->handle, req);
-    }
     free(buf);
     return ESP_OK;
 }
@@ -213,7 +206,7 @@ static void ws_async_send(void *arg)
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     if (resp_arg->updateAll)
     {
-        ESP_LOGW(TAG, "WS Multicast update");
+        ESP_LOGW(TAG, "WS Multicast update. Requested: %d", (int) resp_arg->requestData);
         for (int i = 0; i < fds; i++)
         {
             client_info = httpd_ws_get_fd_info(server, client_fds[i]);
@@ -237,14 +230,14 @@ static void ws_async_send(void *arg)
     free(resp_arg);
 }
 
-static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
+/*static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
 {
     struct async_resp_arg *resp_arg = malloc(sizeof(struct async_resp_arg));
     resp_arg->hd = req->handle;
     resp_arg->fd = httpd_req_to_sockfd(req);
     resp_arg->updateAll = true;
     return httpd_queue_work(handle, ws_async_send, resp_arg);
-}
+}*/
 
 esp_err_t webInterfaceUpdateToClients(backendRequest_t content)
 {

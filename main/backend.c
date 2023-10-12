@@ -29,7 +29,6 @@ void backendSetInitialStaCfg(const char *ssid, const char *pass)
 {
     strncpy(wifiCfg.ssid, ssid, 32);
     strncpy(wifiCfg.password, pass, 64);
-    webInterfaceUpdateToClients(BR_FULL);
 }
 
 int32_t backendProcessData(uint8_t *data)
@@ -54,7 +53,6 @@ int32_t backendProcessData(uint8_t *data)
     {
         setTimezone(cjson);
     }
-
     cJSON_Delete(cjson);
     return 0;
 }
