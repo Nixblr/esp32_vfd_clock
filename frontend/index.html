@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>ESP32 Web Server</title>
+    <title>VFD Clock Dashboard</title>
     <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:,">
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -11,7 +11,7 @@
 
 <body>
     <div class="topnav">
-        <h1>VFD Clock settings</h1>
+        <h1>VFD Clock Dashboard</h1>
     </div>
 
     <div class="content">
@@ -29,20 +29,18 @@
             <p class="state" id="status">Status:
             </p>
 
-            <h2>Сalibration constants</h2>
-
-            <!-- TODO подогнать размерности полей под размеры в камне -->
-
-            <p class="state" id="p_trend_display_time">Fan speed:
-                <input class="inputField" style="float:right" id="fan_speed" placeholder="100"
-                    onkeyup="this.value = this.value.replace(/[^0-9]/g, '');">
-            </p>
-
             <h2>Sensor data</h2>
 
-            <p class="state">Dewpoint(estimated):
-                <input class="inputField " style="float:right" id="dewpoint" placeholder="10"
-                    onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');" readonly>
+            <p class="state">Temperature:
+                <input class="inputField " style="float:right" id="temperature" placeholder="???" readonly>
+            </p>
+
+            <p class="state">Relative humidity:
+                <input class="inputField " style="float:right" id="humidity" placeholder="???" readonly>
+            </p>
+
+            <p class="state">Pressure:
+                <input class="inputField " style="float:right" id="pressure" placeholder="???" readonly>
             </p>
 
             <h2>Wi-Fi settings</h2>
@@ -66,7 +64,7 @@
                 <input class="inputField" style="float:right; -webkit-text-security: disc" id="wifi_pass"
                     placeholder="password" onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
             </p>
-            <button id="update_wifi" class="button">Apply changes</button>
+            <button id="update_wifi" class="button">Set Wi-Fi</button>
             
             <h2>Miscellaneous settings</h2>
 
@@ -128,7 +126,7 @@
                 <input class="inputField" style="float:right" id="topic" placeholder="topic"
                     onkeyup="this.value = this.value.replace(/[^a-zA-Z0-9!@#$%^&*!?.]/g, '');">
             </p>
--->
+
             <h2></h2>
             <input type="file" id="otafile" name="otafile" title="Select file" class="fileselect" />
             <button id="fw_update" class="button" onclick="updateFirmware()">Firmware update</button>
@@ -136,7 +134,7 @@
         </div>
     </div>
     </div>
-
+    -->
 
     <script>
         var gateway = `ws://${window.location.hostname}/ws`;
