@@ -6,7 +6,7 @@
 #include <string.h>
 #include "http.h"
 #include "nvs_flash.h"
-
+#include "sensors.h"
 
 
 void app_main(void)
@@ -23,6 +23,7 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     DisplayInit();
+    SensorsInit();
     wifiInterfaceInit();
     httpap_init();
     while (1){
