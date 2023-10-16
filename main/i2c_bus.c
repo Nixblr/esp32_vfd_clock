@@ -1,5 +1,6 @@
 #include "i2c_bus.h"
 #include "driver/i2c.h"
+#include "string.h"
 
 //static const char *TAG = "I2C BUS";
 
@@ -45,6 +46,16 @@ esp_err_t i2cBusRegisterWriteByte(uint8_t devAddr, uint8_t regAddr, uint8_t data
     int ret;
     uint8_t write_buf[2] = {regAddr, data};
     ret = i2c_master_write_to_device(I2C_MASTER_NUM, devAddr, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    return ret;
+}
+
+esp_err_t i2cBusRegisterWrite(uint8_t devAddr, uint8_t regAddr, uint8_t *pBuf, uint8_t len)
+{
+    int ret;
+    uint8_t write_buf[257];
+    write_buf[0] = regAddr;
+    memcpy(&write_buf[1], pBuf, len);
+    ret = i2c_master_write_to_device(I2C_MASTER_NUM, devAddr, write_buf, len + 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     return ret;
 }
 

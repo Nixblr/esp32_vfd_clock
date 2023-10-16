@@ -84,6 +84,11 @@ Disclaimer
 #ifndef __BMP085_H__
 #define __BMP085_H__
 
+#include "i2c_bus.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_err.h"
+
 #define bmp085_calc_temperature(ut)\
 		bmp085_get_temperature(ut)
 
@@ -124,12 +129,12 @@ Disclaimer
 /** defines the return parameter type of the BMP085_WR_FUNCTION
 
 */
-#define BMP085_BUS_WR_RETURN_TYPE char
+#define BMP085_BUS_WR_RETURN_TYPE esp_err_t
 
 /** defines the calling parameter types of the BMP085_WR_FUNCTION
 
 */
-#define BMP085_BUS_WR_PARAM_TYPES unsigned char,unsigned char,unsigned char *,unsigned char
+#define BMP085_BUS_WR_PARAM_TYPES uint8_t, uint8_t,uint8_t *,uint8_t
 
 /** links the order of parameters defined in BMP085_BUS_WR_PARAM_TYPE to function calls used inside the API
 
@@ -147,12 +152,12 @@ Disclaimer
 /** defines the return parameter type of the BMP085_WR_FUNCTION
 
 */
-#define BMP085_BUS_RD_RETURN_TYPE char
+#define BMP085_BUS_RD_RETURN_TYPE esp_err_t
 
 /** defines the calling parameter types of the BMP085_WR_FUNCTION
 
 */
-#define BMP085_BUS_RD_PARAM_TYPES unsigned char, unsigned char, unsigned char *, unsigned char
+#define BMP085_BUS_RD_PARAM_TYPES uint8_t, uint8_t, uint8_t *, uint8_t
 
 /** links the order of parameters defined in BMP085_BUS_WR_PARAM_TYPE to function calls used inside the API
 
@@ -260,7 +265,7 @@ Disclaimer
 
 /* register write and read delays */
 
-#define BMP085_MDELAY_DATA_TYPE	unsigned int
+#define BMP085_MDELAY_DATA_TYPE	uint32_t
 #define BMP085_MDELAY_RETURN_TYPE  void
 
 /** this structure holds all device specific calibration parameters 
