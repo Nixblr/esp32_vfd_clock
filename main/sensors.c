@@ -9,9 +9,12 @@
 #include "driver/gpio.h"
 #include "bmp085.h"
 
+#define MEASURE_PERIOD_DEFAULT_MS 2000
+
 static const char *TAG = "SENSORS";
 static bmp085_t bmp085;
 static SemaphoreHandle_t accessMutex = NULL;
+static SensorsData_t measures = {0};
 
 static void SensorsTask(void *arg);
 static void delayMs(uint32_t d);
@@ -25,7 +28,15 @@ static void delayMs(uint32_t d)
 
 void SensorsInit(void)
 {
-    xTaskCreatePinnedToCore(SensorsTask, "Display Task", 4096, NULL, 5, NULL, tskNO_AFFINITY);
+    accessMutex = xSemaphoreCreateMutex();
+    if (accessMutex != NULL)
+    {
+        xTaskCreatePinnedToCore(SensorsTask, "Sensors Task", 4096, NULL, 5, NULL, tskNO_AFFINITY);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Can't create mutex, so sensors task creation was skipped.");
+    }
 }
 
 static void initDevices(void)
@@ -76,30 +87,53 @@ static void initDevices(void)
     {
         ESP_LOGE(TAG, "BMP085 error: %s", esp_err_to_name(res));
     }
-    //bmp085.oversampling_setting = 3;
+    bmp085.oversampling_setting = 3;
 }
 
 static void SensorsTask(void *arg)
 {
-    float rh;
-    float t;
-
+    float relativeHumidity;
+    float temperatureSHT21;
     unsigned short tRaw;
     unsigned long pressRaw;
-    unsigned short t2;
-    unsigned long press;
+    unsigned short temperatureCalculated;
+    unsigned long pressureCalculatedBMP085;
     initDevices();
 
     while(1)
     {
-        rh = Sht21GetHumidity();
-        t = Sht21GetTemperature();
-        ESP_LOGI(TAG, "SHT - T: %+2.1f °С H: %3.0f%%", t, rh);
+        relativeHumidity = Sht21GetHumidity();
+        temperatureSHT21 = Sht21GetTemperature();
+        ESP_LOGI(TAG, "SHT - T: %+2.1f °С H: %3.0f%%", temperatureSHT21, relativeHumidity);
         pressRaw = bmp085_get_up();
         tRaw = bmp085_get_ut();
-        t2 = bmp085_get_temperature(tRaw);
-        press = bmp085_get_pressure(pressRaw);
-        ESP_LOGI(TAG, "BMP - T: %+2.1f °С P: %3.2f hPa", t2/10.0f, press/100.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        temperatureCalculated = bmp085_get_temperature(tRaw);
+        pressureCalculatedBMP085 = bmp085_get_pressure(pressRaw);
+        ESP_LOGI(TAG, "BMP - T: %+2.1f °С P: %3.2f hPa", temperatureCalculated/10.0f, pressureCalculatedBMP085/100.0f);
+        if (xSemaphoreTake(accessMutex, pdMS_TO_TICKS(100)) == pdTRUE)
+        {
+            measures.bmp085.pressure = pressureCalculatedBMP085;
+            measures.bmp085.temperature = temperatureCalculated;
+            measures.sht21.rh = relativeHumidity;
+            measures.sht21.temperature = temperatureSHT21;
+            xSemaphoreGive(accessMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(MEASURE_PERIOD_DEFAULT_MS));
     }
+}
+
+bool SensorsGetMeasure(SensorsData_t *data, uint32_t waitTime)
+{
+    bool result = false;
+    if (data == NULL)
+    {
+        return false;
+    }
+    if (xSemaphoreTake(accessMutex, pdMS_TO_TICKS(waitTime)) == pdTRUE)
+        {
+            *data = measures;
+            xSemaphoreGive(accessMutex);
+            result = true;
+        }
+    return result;
 }
