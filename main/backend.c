@@ -6,6 +6,7 @@
 #include "http.h"
 #include "display.h"
 #include "stdbool.h"
+#include "sensors.h"
 
 static const char *TAG = "backend";
 static const char* const wifiStateList[] = {"UNKNOWN", "WAIT_IP", "CONNECTED", "CONNECTING", "ERR_UNKN", "ERR_AUTH", "DISCONNECTED"};
@@ -14,6 +15,7 @@ static void setWiFi(cJSON *csjon);
 static void setTimezone(cJSON *cjson);
 static bool getWiFiStateJSON(cJSON *parent);
 static bool getTimezoneJSON(cJSON *parent);
+static bool getMeasurementsJSON(cJSON *parent);
 
 typedef struct WifiCfg_s
 {
@@ -113,6 +115,15 @@ char *backendGetStateJSON(backendRequest_t rd)
         }
     }
 
+    if (rd == BR_MEASUREMENTS || rd == BR_FULL)
+    {
+        if (getMeasurementsJSON(devStateData) == false)
+        {
+            cJSON_Delete(devStateData);
+            return NULL;
+        }
+    }
+
     retStr = cJSON_Print(devStateData);
     if (retStr == NULL)
     {
@@ -155,6 +166,43 @@ static bool getTimezoneJSON(cJSON *parent)
     {
         return false;
     }
+    return true;
+}
+
+static bool getMeasurementsJSON(cJSON *parent)
+{
+    SensorsData_t measure;
+    const cJSON *measJSON = NULL;
+    if (SensorsGetMeasure(&measure, 100) == false)
+    {
+        return false;
+    }
+    measJSON = cJSON_CreateObject();
+    if (measJSON == NULL)
+    {
+        return false;
+    }
+    if (cJSON_AddNumberToObject(measJSON, "bmp085_temperature", measure.bmp085.temperature) == NULL)
+    {
+        cJSON_Delete(measJSON);
+        return false;
+    }
+    if (cJSON_AddNumberToObject(measJSON, "bmp085_pressure", measure.bmp085.pressure) == NULL)
+    {
+        cJSON_Delete(measJSON);
+        return false;
+    }
+    if (cJSON_AddNumberToObject(measJSON, "sht21_temperature", measure.sht21.temperature) == NULL)
+    {
+        cJSON_Delete(measJSON);
+        return false;
+    }
+    if (cJSON_AddNumberToObject(measJSON, "sht21_rh", measure.sht21.rh) == NULL)
+    {
+        cJSON_Delete(measJSON);
+        return false;
+    }
+    cJSON_AddItemToObjectCS(parent, "measurements", measJSON);
     return true;
 }
 
