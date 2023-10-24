@@ -3,7 +3,7 @@
 #include "backend.h"
 #include "cJSON.h"
 #include "wifi_interface.h"
-#include "http.h"
+#include "webServer.h"
 #include "display.h"
 #include "stdbool.h"
 #include "sensors.h"
