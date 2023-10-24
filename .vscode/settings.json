@@ -28,7 +28,8 @@
     "esp_err.h": "c",
     "i2c.h": "c",
     "semphr.h": "c",
-    "nvs_flash.h": "c"
+    "nvs_flash.h": "c",
+    "display.h": "c"
   },
   "idf.adapterTargetName": "esp32",
   "idf.openOcdConfigs": [

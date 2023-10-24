@@ -17,7 +17,7 @@
 #include <string.h>
 #include "stdbool.h"
 
-static const char *TAG = "http";
+static const char *TAG = "webServer";
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[] asm("_binary_index_html_end");
@@ -206,7 +206,7 @@ static void ws_async_send(void *arg)
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     if (resp_arg->updateAll)
     {
-        ESP_LOGW(TAG, "WS Multicast update. Requested: %d", (int) resp_arg->requestData);
+        ESP_LOGI(TAG, "WS Multicast update. Requested: %d", (int) resp_arg->requestData);
         for (int i = 0; i < fds; i++)
         {
             client_info = httpd_ws_get_fd_info(server, client_fds[i]);
@@ -218,11 +218,11 @@ static void ws_async_send(void *arg)
     }
     else
     {
-        ESP_LOGW(TAG, "WS  update.");
+        ESP_LOGI(TAG, "WS  update.");
         client_info = httpd_ws_get_fd_info(server, client_fds[resp_arg->fd]);
         if (client_info == HTTPD_WS_CLIENT_WEBSOCKET)
         {
-            ESP_LOGW(TAG, "WS  update to client.");
+            ESP_LOGI(TAG, "WS  update to client.");
             httpd_ws_send_frame_async(resp_arg->hd, client_fds[resp_arg->fd], &ws_pkt);
         }
     }

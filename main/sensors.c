@@ -104,12 +104,10 @@ static void SensorsTask(void *arg)
     {
         relativeHumidity = Sht21GetHumidity();
         temperatureSHT21 = Sht21GetTemperature();
-        ESP_LOGI(TAG, "SHT - T: %+2.1f °С H: %3.0f%%", temperatureSHT21, relativeHumidity);
         pressRaw = bmp085_get_up();
         tRaw = bmp085_get_ut();
         temperatureCalculated = bmp085_get_temperature(tRaw);
         pressureCalculatedBMP085 = bmp085_get_pressure(pressRaw);
-        ESP_LOGI(TAG, "BMP - T: %+2.1f °С P: %3.2f hPa", temperatureCalculated/10.0f, pressureCalculatedBMP085/100.0f);
         if (xSemaphoreTake(accessMutex, pdMS_TO_TICKS(100)) == pdTRUE)
         {
             measures.bmp085.pressure = pressureCalculatedBMP085;

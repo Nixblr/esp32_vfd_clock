@@ -139,6 +139,8 @@
     <script>
         var gateway = `ws://${window.location.hostname}/ws`;
         var websocket;
+
+        setInterval(() => requestMeasurements(), 2500);
         
         function initWebSocket() {
             getData();
@@ -160,7 +162,6 @@
 
         /*Process incoming data*/
         function onMessage(event) {
-            console.log(event.data);
             var data = JSON.parse(event.data);
             console.log(data.wifiData)
             if(data.hasOwnProperty('wifiData'))
@@ -173,7 +174,7 @@
             {
                 document.getElementById('temperature').value = data.measurements.sht21_temperature.toFixed(1) + "°C" ;
                 document.getElementById('humidity').value = data.measurements.sht21_rh.toFixed(0) + "%";
-                document.getElementById('pressure').value = data.measurements.bmp085_pressure / 100 + "hPa";
+                document.getElementById('pressure').value = (data.measurements.bmp085_pressure / 100).toFixed(1) + "hPa";
             }
             if (data.hasOwnProperty('time_zone'))
             {
@@ -283,6 +284,13 @@
             };
             var data = JSON.stringify(timezone);
             console.log(data)
+            websocket.send(data);
+        }
+
+        function requestMeasurements()
+        {
+            var req = {sensors: ""};
+            var data = JSON.stringify(req);
             websocket.send(data);
         }
 

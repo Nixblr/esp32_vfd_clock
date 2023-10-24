@@ -16,6 +16,7 @@ static void setTimezone(cJSON *cjson);
 static bool getWiFiStateJSON(cJSON *parent);
 static bool getTimezoneJSON(cJSON *parent);
 static bool getMeasurementsJSON(cJSON *parent);
+static void sendSensorsData(void);
 
 typedef struct WifiCfg_s
 {
@@ -55,6 +56,12 @@ int32_t backendProcessData(uint8_t *data)
     {
         setTimezone(cjson);
     }
+
+    if (cJSON_GetObjectItem(cjson, "sensors") != NULL)
+    {
+        sendSensorsData();
+    }
+
     cJSON_Delete(cjson);
     return 0;
 }
@@ -85,6 +92,11 @@ static void setTimezone(cJSON *cjson)
             webInterfaceUpdateToClients(BR_TIMEZONE);
         }
     }
+}
+
+static void sendSensorsData(void)
+{
+    webInterfaceUpdateToClients(BR_MEASUREMENTS);
 }
 
 char *backendGetStateJSON(backendRequest_t rd)
