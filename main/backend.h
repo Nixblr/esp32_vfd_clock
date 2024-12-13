@@ -18,7 +18,8 @@ typedef enum backendRequest_e
     BR_FULL,
     BR_WIFI,
     BR_TIMEZONE,
-    BR_DISP_STATE
+    BR_DISP_STATE,
+    BR_MEASUREMENTS
 } backendRequest_t;
 
 int32_t backendProcessData(uint8_t *data);
